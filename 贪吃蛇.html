@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贪吃蛇游戏</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        #game-board {
+            border: 1px solid #000;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="game-board" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('game-board');
+        const ctx = canvas.getContext('2d');
+
+        const blockSize = 20;
+        const widthInBlocks = canvas.width / blockSize;
+        const heightInBlocks = canvas.height / blockSize;
+
+        let snake = [];
+        for (let i = 5; i > 0; i--) {
+            snake.push({ x: i, y: 5 });
+        }
+        let direction = 'right';
+        let food = {
+            x: Math.floor(Math.random() * widthInBlocks),
+            y: Math.floor(Math.random() * heightInBlocks)
+        };
+        let score = 0;
+        let lives = 3;
+        const initialSpeed = 200;
+        let speed = initialSpeed;
+
+        function drawBlock(ctx, x, y) {
+            ctx.fillRect(x * blockSize, y * blockSize, blockSize, blockSize);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = '#000';
+            snake.forEach(segment => {
+                drawBlock(ctx, segment.x, segment.y);
+            });
+
+            ctx.fillStyle = 'red';
+            drawBlock(ctx, food.x, food.y);
+
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Score: ${score}`, 10, 30);
+            ctx.fillText(`Lives: ${lives}`, 10, 60);
+        }
+
+        function move() {
+            const head = { ...snake[0] };
+            switch (direction) {
+                case 'right':
+                    head.x++;
+                    break;
+                case 'left':
+                    head.x--;
+                    break;
+                case 'up':
+                    head.y--;
+                    break;
+                case 'down':
+                    head.y++;
+                    break;
+            }
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                food = {
+                    x: Math.floor(Math.random() * widthInBlocks),
+                    y: Math.floor(Math.random() * heightInBlocks)
+                };
+            } else {
+                snake.pop();
+            }
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+            if (head.x < 0 || head.x >= widthInBlocks || head.y < 0 || head.y >= heightInBlocks) {
+                return true;
+            }
+            for (let i = 1; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function gameLoop() {
+            if (checkCollision()) {
+                lives--;
+                if (lives === 0) {
+                    alert(`Game Over! Your score is: ${score}`);
+                    location.reload();
+                } else {
+                    snake = [];
+                    for (let i = 5; i > 0; i--) {
+                        snake.push({ x: i, y: 5 });
+                    }
+                    direction = 'right';
+                    speed = initialSpeed;
+                }
+            }
+
+            move();
+            draw();
+            setTimeout(gameLoop, speed);
+        }
+
+        document.addEventListener('keydown', function (event) {
+            switch (event.key) {
+                case 'ArrowRight':
+                    if (direction!== 'left') direction = 'right';
+                    break;
+                case 'ArrowLeft':
+                    if (direction!== 'right') direction = 'left';
+                    break;
+                case 'ArrowUp':
+                    if (direction!== 'down') direction = 'up';
+                    break;
+                case 'ArrowDown':
+                    if (direction!== 'up') direction = 'down';
+                    break;
+            }
+        });
+
+        gameLoop();
+    </script>
+</body>
+
+</html>    
